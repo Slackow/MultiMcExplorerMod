@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "sub10",
+  "version": "${version}",
+  "name": "TST",
+  "description": "Tournament mod for sub10 mod",
+  "authors": [
+    "Slackow",
+    "Algorythm"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.slackow.sub10.Sub10"
+    ]
+  },
+  "mixins": [
+    "sub10.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.12.5",
+    "fabric": "*",
+    "minecraft": "1.16.1"
+  }
+}
