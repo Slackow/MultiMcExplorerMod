@@ -1,27 +1,24 @@
 {
   "schemaVersion": 1,
-  "id": "sub10",
+  "id": "multimc_explore",
   "version": "${version}",
-  "name": "TST",
-  "description": "Tournament mod for sub10 mod",
+  "name": "MultiMC Explorer",
+  "description": "Mod that allows you to access worlds from other instances within MultiMC",
   "authors": [
-    "Slackow",
-    "Algorythm"
+    "Slackow"
   ],
   "contact": {},
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.slackow.sub10.Sub10"
+      "com.slackow.explore.MultiMCExploreMod"
     ]
   },
   "mixins": [
-    "sub10.mixins.json"
+    "multimc_explore.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.12.5",
-    "fabric": "*",
-    "minecraft": "1.16.1"
+    "fabricloader": ">=0.12.5"
   }
 }
