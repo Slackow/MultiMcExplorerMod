@@ -3,6 +3,8 @@ package com.slackow.explore;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
+import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -23,12 +25,28 @@ public class InstanceSelectionButton extends ButtonWidget {
         super(x, y, 20, 20, LiteralText.EMPTY, e -> {
             if (MultiMCManager.hasMultiMC()) {
                 MinecraftClient client = MinecraftClient.getInstance();
-                client.openScreen(new InstanceSelectionScreen());
+
+                boolean isSinglePlayer = screen instanceof SelectWorldScreen;
+                if (Screen.hasShiftDown()) {
+                    screen.onClose();
+                    MultiMCManager.setSaves(MultiMCManager.getDotMinecraft().resolve("saves"));
+                    MultiMCManager.setSelected(new Instance("current", MultiMCManager.getDotMinecraft().getParent().getFileName() + "", "", 0, true));
+                    if (isSinglePlayer) {
+                        client.openScreen(new SelectWorldScreen(null));
+                    } else {
+                        client.openScreen(new MultiplayerScreen(null));
+                    }
+                } else {
+                    client.openScreen(new InstanceSelectionScreen(isSinglePlayer));
+                }
             }
         }, (ButtonWidget button, MatrixStack matrices, int mouseX, int mouseY) -> {
             // display tooltip
-            screen.renderTooltip(matrices, !MultiMCManager.hasMultiMC() ? Collections.singletonList(StringRenderable.plain("No MultiMC Detected")) :
-                    Arrays.asList(StringRenderable.plain("Browse worlds from"),
+            screen.renderTooltip(matrices, !MultiMCManager.hasMultiMC() ?
+                    Collections.singletonList(StringRenderable.plain("No MultiMC Detected")) :
+                    Screen.hasShiftDown() ? Arrays.asList(StringRenderable.plain("Switch to"),
+                            StringRenderable.plain("Main Instance")) :
+                    Arrays.asList(StringRenderable.plain("Browse " + ((screen instanceof SelectWorldScreen) ? "world" : "server") + "s from"),
                             StringRenderable.plain("other instances")), mouseX, mouseY);
         });
     }

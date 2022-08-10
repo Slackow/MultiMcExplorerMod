@@ -5,6 +5,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -22,9 +23,11 @@ public class InstanceSelectionScreen extends Screen {
     private final MultiMCManager manager = new MultiMCManager();
     private InstanceListWidget instanceListWidget;
     private ButtonWidget doneButton;
+    private final boolean isSinglePlayer;
 
-    public InstanceSelectionScreen() {
+    public InstanceSelectionScreen(boolean isSinglePlayer) {
         super(new LiteralText("Select Instance"));
+        this.isSinglePlayer = isSinglePlayer;
     }
 
     @Override
@@ -36,11 +39,11 @@ public class InstanceSelectionScreen extends Screen {
             InstanceListWidget.Entry selected = instanceListWidget.getSelected();
             if (selected != null) {
                 assert client != null;
-                manager.setSaves(MultiMCManager.getDotMinecraft()
+                MultiMCManager.setSaves(MultiMCManager.getDotMinecraft()
                         .getParent()
                         .resolveSibling(selected.instance.getPath())
                         .resolve(".minecraft/saves"));
-                  manager.setSelected(selected.instance);
+                MultiMCManager.setSelected(selected.instance);
 
             }
             onClose();
@@ -59,15 +62,16 @@ public class InstanceSelectionScreen extends Screen {
     @Override
     public void onClose() {
         assert client != null;
-        client.openScreen(new SelectWorldScreen(null));
+        client.openScreen(isSinglePlayer ? new SelectWorldScreen(null) : new MultiplayerScreen(null));
     }
+
     @Environment(EnvType.CLIENT)
     public class InstanceListWidget extends AlwaysSelectedEntryListWidget<InstanceListWidget.Entry> {
 
         public InstanceListWidget(MinecraftClient client) {
             super(client, InstanceSelectionScreen.this.width, InstanceSelectionScreen.this.height, 32, InstanceSelectionScreen.this.height - 65 + 4, 36);
-            String name = manager.getSelected() != null ? manager.getSelected().getPath() :  MultiMCManager.getDotMinecraft().getParent().getFileName().toString();
-            for (Instance instance : manager.getInstances()) {
+            String name = manager.getSelected() != null ? manager.getSelected().getPath() : MultiMCManager.getDotMinecraft().getParent().getFileName().toString();
+            for (Instance instance : manager.getInstances(isSinglePlayer)) {
                 Entry instanceEntry = new Entry(instance);
                 this.addEntry(instanceEntry);
                 if (name.equals(instanceEntry.instance.getPath())) {
@@ -97,8 +101,8 @@ public class InstanceSelectionScreen extends Screen {
 
             @Override
             public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-                textRenderer.drawWithShadow(matrices, instance.getName(), x + 35, y + 2, 0xffffff, false);
-                textRenderer.drawWithShadow(matrices, instance.getGroup() + " - " + instance.getWorldCount() + " World" + (instance.getWorldCount() != 1 ? "s" : ""), x + 35, y + 18, 0x808080, false);
+                textRenderer.drawWithShadow(matrices, instance.getName(), x + 35, y + 2, 0xFFFFFF, false);
+                textRenderer.drawWithShadow(matrices, instance.getGroup() + " - " + instance.getItemCount() + " " + (isSinglePlayer ? "World" : "Server") + (instance.getItemCount() != 1 ? "s" : ""), x + 35, y + 18, 0x808080, false);
                 textRenderer.drawWithShadow(matrices, " - /" + instance.getPath() + "/", x + 35 + textRenderer.getWidth(instance.getName()), y + 2, 0x808080, false);
                 client.getTextureManager().bindTexture(DEFAULT_ICON);
                 drawTexture(matrices, x + 1, y, 1, 0, 30, 32, 32, 32);

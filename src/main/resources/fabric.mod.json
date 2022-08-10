@@ -3,7 +3,7 @@
   "id": "multimc_explore",
   "version": "${version}",
   "name": "MultiMC Explorer",
-  "description": "Mod that allows you to access worlds from other instances within MultiMC",
+  "description": "Mod that allows you to access worlds and servers within other instances from MultiMC",
   "authors": [
     "Slackow"
   ],

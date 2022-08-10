@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.slackow.explore.mixin.LevelStorageAccessor;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -36,22 +38,22 @@ public class MultiMCManager {
     }
 
 
-    public void setSaves(Path path) {
+    public static void setSaves(Path path) {
         ((LevelStorageAccessor) MinecraftClient.getInstance().getLevelStorage()).setSavesDirectory(path);
     }
 
-    public List<Instance> getInstances() {
+    public List<Instance> getInstances(boolean isSinglePlayer) {
         Path currInstancePath = MultiMCManager.getDotMinecraft().getParent();
         Path mmcPath = currInstancePath.getParent();
         Path instances = mmcPath.resolve("instgroups.json");
-        Map<String, String> groupMsp = new HashMap<>();
+        Map<String, String> groupMap = new HashMap<>();
         if (Files.exists(instances)) {
             try (Reader reader = Files.newBufferedReader(instances)) {
                 JsonObject root = new JsonParser().parse(reader).getAsJsonObject();
                 for (Map.Entry<String, JsonElement> entry : root.getAsJsonObject("groups").entrySet()) {
                     String group = entry.getKey();
                     for (JsonElement string : entry.getValue().getAsJsonObject().getAsJsonArray("instances")) {
-                        groupMsp.put(string.getAsString(), group);
+                        groupMap.put(string.getAsString(), group);
                     }
                 }
             } catch (IOException e) {
@@ -64,8 +66,8 @@ public class MultiMCManager {
                             Files.exists(path.resolve("instance.cfg")))
                     .map(path -> new Instance(nameFromPath(path),
                             path.getFileName().toString(),
-                            groupMsp.get(path.getFileName().toString()),
-                            worldCountFromPath(path),
+                            groupMap.get(path.getFileName().toString()),
+                            itemCountFromPath(path, isSinglePlayer),
                             currInstancePath.equals(path)))
                     .sorted(Comparator.comparing(Instance::getGroup)
                             .thenComparing(Instance::getName)
@@ -76,10 +78,24 @@ public class MultiMCManager {
         }
     }
 
-    private int worldCountFromPath(Path path) {
-        try(Stream<Path> dirs = Files.list(path.resolve(".minecraft/saves"))) {
-            return (int) dirs.filter(world -> Files.isDirectory(world) && Files.exists(world.resolve("level.dat"))).count();
-        } catch (IOException e) {
+    private int itemCountFromPath(Path path, boolean isSinglePLayer) {
+        if (isSinglePLayer) {
+            try(Stream<Path> dirs = Files.list(path.resolve(".minecraft/saves"))) {
+                return (int) dirs.filter(world -> Files.isDirectory(world) && Files.exists(world.resolve("level.dat"))).count();
+            } catch (IOException e) {
+                return 0;
+            }
+        } else {
+            try {
+                CompoundTag tag = NbtIo.read(path.resolve(".minecraft/servers.dat").toFile());
+                if (tag != null) {
+                    return tag.getList("servers", 10).size();
+                }
+            } catch (IOException e) {
+                return 0;
+            }
+
+
             return 0;
         }
     }
@@ -93,7 +109,7 @@ public class MultiMCManager {
 
     }
 
-    public void setSelected(Instance instance) {
+    public static void setSelected(Instance instance) {
         selected = instance;
     }
 

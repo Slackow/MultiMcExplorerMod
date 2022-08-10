@@ -4,14 +4,14 @@ public class Instance {
     private final String name;
     private final String path;
     private final String group;
-    private final int worldCount;
+    private final int itemCount;
     private final boolean isThisOne;
 
-    public Instance(String name, String path, String group, int worldCount, boolean isThisOne) {
+    public Instance(String name, String path, String group, int itemCount, boolean isThisOne) {
         this.name = name;
         this.path = path;
         this.group = group == null ? "N/A" : group;
-        this.worldCount = worldCount;
+        this.itemCount = itemCount;
         this.isThisOne = isThisOne;
     }
 
@@ -27,8 +27,8 @@ public class Instance {
         return group;
     }
 
-    public int getWorldCount() {
-        return worldCount;
+    public int getItemCount() {
+        return itemCount;
     }
 
     public boolean isThisOne() {

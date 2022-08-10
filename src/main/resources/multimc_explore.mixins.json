@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_8",
   "client": [
     "LevelStorageAccessor",
-    "SelectWorldScreenMixin"
+    "MultiplayerScreenMixin",
+    "SelectWorldScreenMixin",
+    "ServerListMixin"
   ],
   "injectors": {
     "defaultRequire": 1
