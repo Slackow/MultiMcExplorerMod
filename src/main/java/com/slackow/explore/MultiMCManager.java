@@ -25,10 +25,14 @@ public class MultiMCManager {
 
     }
 
-    private static final boolean hasMultiMC = Files.exists(MinecraftClient.getInstance().runDirectory.toPath().resolveSibling("instance.cfg"));
+    private static final boolean hasMultiMC = Files.exists(getDotMinecraft().resolveSibling("instance.cfg"));
 
     public static boolean hasMultiMC() {
         return hasMultiMC;
+    }
+
+    public static Path getDotMinecraft() {
+        return MinecraftClient.getInstance().runDirectory.toPath().normalize();
     }
 
 
@@ -37,7 +41,7 @@ public class MultiMCManager {
     }
 
     public List<Instance> getInstances() {
-        Path currInstancePath = MinecraftClient.getInstance().runDirectory.toPath().getParent();
+        Path currInstancePath = MultiMCManager.getDotMinecraft().getParent();
         Path mmcPath = currInstancePath.getParent();
         Path instances = mmcPath.resolve("instgroups.json");
         Map<String, String> groupMsp = new HashMap<>();
@@ -58,7 +62,11 @@ public class MultiMCManager {
         try (Stream<Path> paths = Files.list(mmcPath)) {
             return paths.filter(path -> Files.isDirectory(path.resolve(".minecraft")) &&
                             Files.exists(path.resolve("instance.cfg")))
-                    .map(path -> new Instance(nameFromPath(path), path.getFileName().toString(), groupMsp.get(path.getFileName().toString()), worldCountFromPath(path)))
+                    .map(path -> new Instance(nameFromPath(path),
+                            path.getFileName().toString(),
+                            groupMsp.get(path.getFileName().toString()),
+                            worldCountFromPath(path),
+                            currInstancePath.equals(path)))
                     .sorted(Comparator.comparing(Instance::getGroup)
                             .thenComparing(Instance::getName)
                             .thenComparing(Instance::getPath))

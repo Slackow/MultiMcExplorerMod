@@ -13,10 +13,12 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
+import org.lwjgl.opengl.GL11;
 
 public class InstanceSelectionScreen extends Screen {
 
-    private static final Identifier DEFAULT_ICON = new Identifier("textures/multimc/default_icon.png");
+    public static final Identifier DEFAULT_ICON = new Identifier("textures/multimc/default_icon.png");
+    public static final Identifier SELECTED_INDICATOR = new Identifier("textures/multimc/selected.png");
     private final MultiMCManager manager = new MultiMCManager();
     private InstanceListWidget instanceListWidget;
     private ButtonWidget doneButton;
@@ -34,7 +36,7 @@ public class InstanceSelectionScreen extends Screen {
             InstanceListWidget.Entry selected = instanceListWidget.getSelected();
             if (selected != null) {
                 assert client != null;
-                manager.setSaves(client.runDirectory.toPath()
+                manager.setSaves(MultiMCManager.getDotMinecraft()
                         .getParent()
                         .resolveSibling(selected.instance.getPath())
                         .resolve(".minecraft/saves"));
@@ -64,9 +66,8 @@ public class InstanceSelectionScreen extends Screen {
 
         public InstanceListWidget(MinecraftClient client) {
             super(client, InstanceSelectionScreen.this.width, InstanceSelectionScreen.this.height, 32, InstanceSelectionScreen.this.height - 65 + 4, 36);
-            String name = manager.getSelected() != null ? manager.getSelected().getPath() :  client.runDirectory.toPath().getParent().getFileName().toString();
-            System.out.println(manager.getSelected());
-            for (Instance instance : InstanceSelectionScreen.this.manager.getInstances()) {
+            String name = manager.getSelected() != null ? manager.getSelected().getPath() :  MultiMCManager.getDotMinecraft().getParent().getFileName().toString();
+            for (Instance instance : manager.getInstances()) {
                 Entry instanceEntry = new Entry(instance);
                 this.addEntry(instanceEntry);
                 if (name.equals(instanceEntry.instance.getPath())) {
@@ -103,6 +104,20 @@ public class InstanceSelectionScreen extends Screen {
                 drawTexture(matrices, x + 1, y, 1, 0, 30, 32, 32, 32);
                 drawTexture(matrices, x, y + 1, 0, 1, 1, 30, 32, 32);
                 drawTexture(matrices, x + 31, y + 1, 31, 1, 1, 30, 32, 32);
+
+                float red = 0;
+                float green = 0;
+                float blue = 0;
+                if (instance.isThisOne()) {
+                    red = 1;
+                    green = 1;
+                }
+                //noinspection ConstantConditions
+                if (red != 0 || green != 0 || blue != 0) {
+                    client.getTextureManager().bindTexture(SELECTED_INDICATOR);
+                    GL11.glColor4f(red, green, blue, 1);
+                    drawTexture(matrices, x - 16, y + 12, 0, 0, 8, 8, 1, 1);
+                }
             }
 
             public boolean mouseClicked(double mouseX, double mouseY, int button) {

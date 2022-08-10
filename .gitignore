@@ -1,6 +1,5 @@
 # User-specific stuff
 .idea/
-launch.sh
 
 *.iml
 *.ipr
